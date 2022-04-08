@@ -207,7 +207,7 @@ func (n *bootstrapper) createTLSConfig(host string) *tls.Config {
 	// the client.
 	switch n.URL.Scheme {
 	case "tls":
-		tlsConfig.NextProtos = []string{NextProtoDoT}
+		//tlsConfig.NextProtos = []string{NextProtoDoT}
 	case "https":
 		tlsConfig.NextProtos = []string{http2.NextProtoTLS, "http/1.1"}
 	case "quic":
