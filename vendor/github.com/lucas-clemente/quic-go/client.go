@@ -73,8 +73,9 @@ func DialAddrEarly(
 	addr string,
 	tlsConf *tls.Config,
 	config *Config,
+	port int,
 ) (EarlySession, VersionInfo, error) {
-	return DialAddrEarlyContext(context.Background(), addr, tlsConf, config)
+	return DialAddrEarlyContext(context.Background(), addr, tlsConf, config, port)
 }
 
 // DialAddrEarlyContext establishes a new 0-RTT QUIC connection to a server using provided context.
@@ -84,8 +85,9 @@ func DialAddrEarlyContext(
 	addr string,
 	tlsConf *tls.Config,
 	config *Config,
+	port int,
 ) (EarlySession, VersionInfo, error) {
-	sess, VersionInformation, err := dialAddrContext(ctx, addr, tlsConf, config, true, 0)
+	sess, VersionInformation, err := dialAddrContext(ctx, addr, tlsConf, config, true, port)
 	if err != nil {
 		return nil, VersionInformation, err
 	}
