@@ -313,7 +313,8 @@ func initUpstreams(config *proxy.Config, options *Options, tokenStore quic.Token
 		InsecureSkipVerify: options.Insecure,
 		Bootstrap:          options.BootstrapDNS,
 		Timeout:            defaultTimeout,
-		TokenStore:			tokenStore,
+		TokenStore:	    tokenStore,
+		ClientSessionCache: options.ClientSessionCache,
 	}
 	upstreamConfig, err := proxy.ParseUpstreamsConfig(upstreams, upsOpts)
 	if err != nil {
