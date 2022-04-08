@@ -276,7 +276,7 @@ func (p *dnsOverQUIC) openSession() (quic.Session, error) {
 		Versions:       versions,
 		MaxIdleTimeout: time.Millisecond * 3000000,
 	}
-	session, versionInfo, err := quic.DialAddrContext(context.Background(), addr, tlsConfig, quicConfig, 40000)
+	session, versionInfo, err := quic.DialAddrEarlyContext(context.Background(), addr, tlsConfig, quicConfig, 40000)
 	if err != nil {
 		return nil, errorx.Decorate(err, "failed to open QUIC session to %s", p.Address())
 	}
