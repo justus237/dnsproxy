@@ -60,7 +60,6 @@ type dnsOverQUIC struct {
 	session    quic.Session
 	tokenStore quic.TokenStore
 	version    quic.VersionNumber
-	clientSessionCache tls.ClientSessionCache
 
 	bytesPool    *sync.Pool // byte packets pool
 	sync.RWMutex            // protects session and bytesPool
@@ -237,9 +236,6 @@ func (p *dnsOverQUIC) openStream(session quic.Session) (quic.Stream, error) {
 
 func (p *dnsOverQUIC) openSession() (quic.Session, error) {
 	tlsConfig, dialContext, err := p.boot.get()
-	if p.clientSessionCache != nil {
-		tlsConfig.ClientSessionCache = p.clientSessionCache
-	}
 	if err != nil {
 		return nil, err
 	}
