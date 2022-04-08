@@ -80,6 +80,9 @@ type Options struct {
 
 	// Path to the DNSCrypt configuration file
 	DNSCryptConfigPath string `yaml:"dnscrypt-config" short:"g" long:"dnscrypt-config" description:"Path to a file with DNSCrypt configuration. You can generate one using https://github.com/ameshkov/dnscrypt"`
+	
+	// optional tls.ClientSessionCache to use (needed for 0RTTs)
+	ClientSessionCache tls.ClientSessionCache
 
 	// Upstream DNS servers settings
 	// --
@@ -230,6 +233,8 @@ func run(options *Options) {
 	tokenStore := quic.NewLRUTokenStore(5, 50)
 	config := createProxyConfig(options, tokenStore)
 	dnsProxy := &proxy.Proxy{Config: config}
+	
+	options.ClientSessionCache := tls.NewLRUClientSessionCache(100)
 
 	// Init DNS64 if needed
 	initDNS64(dnsProxy, options)
