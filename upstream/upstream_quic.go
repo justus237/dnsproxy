@@ -237,7 +237,9 @@ func (p *dnsOverQUIC) openStream(session quic.Session) (quic.Stream, error) {
 
 func (p *dnsOverQUIC) openSession() (quic.Session, error) {
 	tlsConfig, dialContext, err := p.boot.get()
-	tlsConfig.ClientSessionCache = p.clientSessionCache
+	if p.clientSessionCache != nil {
+		tlsConfig.ClientSessionCache = p.clientSessionCache
+	}
 	if err != nil {
 		return nil, err
 	}
