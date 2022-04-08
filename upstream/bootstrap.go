@@ -77,6 +77,9 @@ func newBootstrapperResolved(upsURL *url.URL, options *Options) (*bootstrapper, 
 	}
 	b.dialContext = b.createDialContext(resolverAddresses)
 	b.resolvedConfig = b.createTLSConfig(host)
+	if options.ClientSessionCache != nil {
+		b.resolvedConfig.ClientSessionCache = options.ClientSessionCache
+	}
 
 	return b, nil
 }
