@@ -139,7 +139,7 @@ func urlToUpstream(upstreamURL *url.URL, opts *Options) (Upstream, error) {
 		if err != nil {
 			return nil, errorx.Decorate(err, "couldn't create quic bootstrapper")
 		}
-		return &dnsOverQUIC{boot: b, tokenStore: opts.TokenStore, clientSessionCache: opts.ClientSessionCache}, nil
+		return &dnsOverQUIC{boot: b, tokenStore: opts.TokenStore}, nil
 
 	case "tls":
 		if upstreamURL.Port() == "" {
