@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"crypto/tls"
 
 	"github.com/AdguardTeam/golibs/log"
 	"github.com/ameshkov/dnscrypt/v2"
@@ -50,6 +51,9 @@ type Options struct {
 	VerifyDNSCryptCertificate func(cert *dnscrypt.Cert) error
 
 	TokenStore quic.TokenStore
+	
+	// optional tls.ClientSessionCache to use (needed for 0RTTs)
+	ClientSessionCache tls.ClientSessionCache
 }
 
 // Parse "host:port" string and validate port number
@@ -135,7 +139,7 @@ func urlToUpstream(upstreamURL *url.URL, opts *Options) (Upstream, error) {
 		if err != nil {
 			return nil, errorx.Decorate(err, "couldn't create quic bootstrapper")
 		}
-		return &dnsOverQUIC{boot: b, tokenStore: opts.TokenStore}, nil
+		return &dnsOverQUIC{boot: b, tokenStore: opts.TokenStore, clientSessionCache: opts.ClientSessionCache}, nil
 
 	case "tls":
 		if upstreamURL.Port() == "" {
