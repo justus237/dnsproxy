@@ -10,6 +10,7 @@ import (
 	"os"
 	"sync"
 	"time"
+	"crypto/tls"
 
 	"github.com/joomcode/errorx"
 	"github.com/lucas-clemente/quic-go"
