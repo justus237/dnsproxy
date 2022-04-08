@@ -81,8 +81,6 @@ type Options struct {
 	// Path to the DNSCrypt configuration file
 	DNSCryptConfigPath string `yaml:"dnscrypt-config" short:"g" long:"dnscrypt-config" description:"Path to a file with DNSCrypt configuration. You can generate one using https://github.com/ameshkov/dnscrypt"`
 	
-	// optional tls.ClientSessionCache to use (needed for 0RTTs)
-	ClientSessionCache tls.ClientSessionCache
 
 	// Upstream DNS servers settings
 	// --
@@ -231,10 +229,10 @@ func run(options *Options) {
 
 	// Prepare the proxy server
 	tokenStore := quic.NewLRUTokenStore(5, 50)
-	config := createProxyConfig(options, tokenStore)
+	clientSessionCache := tls.NewLRUClientSessionCache(100)
+	config := createProxyConfig(options, tokenStore, clientSessionCache)
 	dnsProxy := &proxy.Proxy{Config: config}
 	
-	options.ClientSessionCache := tls.NewLRUClientSessionCache(100)
 
 	// Init DNS64 if needed
 	initDNS64(dnsProxy, options)
@@ -276,7 +274,7 @@ func run(options *Options) {
 }
 
 // createProxyConfig creates proxy.Config from the command line arguments
-func createProxyConfig(options *Options, tokenStore quic.TokenStore) proxy.Config {
+func createProxyConfig(options *Options, tokenStore quic.TokenStore, clientSessionCache tls.ClientSessionCache) proxy.Config {
 	// Create the config
 	config := proxy.Config{
 		Ratelimit:       options.Ratelimit,
@@ -295,7 +293,7 @@ func createProxyConfig(options *Options, tokenStore quic.TokenStore) proxy.Confi
 		MaxGoroutines:          options.MaxGoRoutines,
 	}
 
-	initUpstreams(&config, options, tokenStore)
+	initUpstreams(&config, options, tokenStore, clientSessionCache)
 	initEDNS(&config, options)
 	initBogusNXDomain(&config, options)
 	initTLSConfig(&config, options)
@@ -306,7 +304,7 @@ func createProxyConfig(options *Options, tokenStore quic.TokenStore) proxy.Confi
 }
 
 // initUpstreams inits upstream-related config
-func initUpstreams(config *proxy.Config, options *Options, tokenStore quic.TokenStore) {
+func initUpstreams(config *proxy.Config, options *Options, tokenStore quic.TokenStore, clientSessionCache tls.ClientSessionCache) {
 	// Init upstreams
 	upstreams := loadServersList(options.Upstreams)
 	upsOpts := &upstream.Options{
@@ -314,7 +312,7 @@ func initUpstreams(config *proxy.Config, options *Options, tokenStore quic.Token
 		Bootstrap:          options.BootstrapDNS,
 		Timeout:            defaultTimeout,
 		TokenStore:	    tokenStore,
-		ClientSessionCache: options.ClientSessionCache,
+		ClientSessionCache: clientSessionCache,
 	}
 	upstreamConfig, err := proxy.ParseUpstreamsConfig(upstreams, upsOpts)
 	if err != nil {
