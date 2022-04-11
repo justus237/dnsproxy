@@ -10,6 +10,7 @@ import (
 	"os"
 	"sync"
 	"time"
+	"crypto/tls"
 
 	"github.com/joomcode/errorx"
 	"github.com/lucas-clemente/quic-go"
@@ -59,6 +60,7 @@ type dnsOverQUIC struct {
 	session    quic.Session
 	tokenStore quic.TokenStore
 	version    quic.VersionNumber
+	clientSessionCache tls.ClientSessionCache
 
 	bytesPool    *sync.Pool // byte packets pool
 	sync.RWMutex            // protects session and bytesPool
@@ -239,9 +241,14 @@ func (p *dnsOverQUIC) openSession() (quic.Session, error) {
 		return nil, err
 	}
 	if tlsConfig.ClientSessionCache != nil {
-		log.Tracef("\n tls config has client session cache\n")
+		log.Tracef("\n---tls config has client session cache, handed through via bootstrapper\n")
 	} else {
-		log.Tracef("\n tls config does not have client session cache\n")
+		log.Tracef("\n---tls config does not have client session cache, was not handed through via bootstrapper, setting from outer options\n")
+		if p.clientSessionCache != nil {
+			tlsConfig.ClientSessionCache = p.clientSessionCache
+		} else {
+			log.Tracef("\n---outer options session cache was also nil\n")
+		}
 	}
 	
 
