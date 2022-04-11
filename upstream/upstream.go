@@ -117,6 +117,7 @@ func urlToBoot(resolverURL *url.URL, opts *Options) (*bootstrapper, error) {
 // urlToUpstream converts a URL to an Upstream
 // options -- Upstream customization options
 func urlToUpstream(upstreamURL *url.URL, opts *Options) (Upstream, error) {
+	log.Tracef("\n---creating new bootstrapper with command line supplied upstream\n")
 	switch upstreamURL.Scheme {
 	case "sdns":
 		return stampToUpstream(upstreamURL, opts)
