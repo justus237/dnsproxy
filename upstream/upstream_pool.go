@@ -71,6 +71,9 @@ func (n *TLSPool) Create() (net.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
+	if tlsConfig.ClientSessionCache != nil {
+		log.Printf("---TLSPool.Create(): clientSessionCache: %s\n", tlsConfig.ClientSessionCache)
+	}
 
 	// we'll need a new connection, dial now
 	conn, err := tlsDial(dialContext, "tcp", tlsConfig)
