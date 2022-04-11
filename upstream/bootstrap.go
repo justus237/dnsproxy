@@ -59,6 +59,7 @@ type bootstrapper struct {
 // This can be done only in the case when we already know the resolver IP address.
 // options -- Upstream customization options
 func newBootstrapperResolved(upsURL *url.URL, options *Options) (*bootstrapper, error) {
+	log.Tracef("\n---attempting to make new upstream\n")
 	// get a host without port
 	host, port, err := net.SplitHostPort(upsURL.Host)
 	if err != nil {
@@ -79,6 +80,7 @@ func newBootstrapperResolved(upsURL *url.URL, options *Options) (*bootstrapper, 
 	b.resolvedConfig = b.createTLSConfig(host)
 	if options.ClientSessionCache != nil {
 		b.resolvedConfig.ClientSessionCache = options.ClientSessionCache
+		log.Tracef("\n---set client session cache in non-copy version\n")
 	}
 
 	return b, nil
@@ -118,6 +120,7 @@ type dialHandler func(ctx context.Context, network, addr string) (net.Conn, erro
 func (n *bootstrapper) get() (*tls.Config, dialHandler, error) {
 	n.RLock()
 	if n.dialContext != nil && n.resolvedConfig != nil { // fast path
+		log.Tracef("\n---fast path where tls config gets copied\n")
 		tlsConfig, dialContext := n.resolvedConfig, n.dialContext
 		n.RUnlock()
 		return tlsConfig.Clone(), dialContext, nil
