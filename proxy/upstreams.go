@@ -66,7 +66,7 @@ func ParseUpstreamsConfig(upstreamConfig []string, options *upstream.Options) (*
 						Timeout:            options.Timeout,
 						InsecureSkipVerify: options.InsecureSkipVerify,
 						TokenStore: 	    options.TokenStore,
-						ClientSessionCache: options.ClientSessionCache
+						ClientSessionCache: options.ClientSessionCache,
 					})
 				if err != nil {
 					err = fmt.Errorf("cannot prepare the upstream %s (%s): %s", l, options.Bootstrap, err)
