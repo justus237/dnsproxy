@@ -78,10 +78,7 @@ func newBootstrapperResolved(upsURL *url.URL, options *Options) (*bootstrapper, 
 	}
 	b.dialContext = b.createDialContext(resolverAddresses)
 	b.resolvedConfig = b.createTLSConfig(host)
-	if options.ClientSessionCache != nil {
-		b.resolvedConfig.ClientSessionCache = options.ClientSessionCache
-		log.Tracef("\n---set client session cache in non-copy version\n")
-	}
+	
 
 	return b, nil
 }
@@ -129,6 +126,7 @@ func (n *bootstrapper) get() (*tls.Config, dialHandler, error) {
 	//
 	// Slow path: resolve the IP address of the n.address's host
 	//
+	log.Tracef("\n---slow path\n")
 
 	// get a host without port
 	addr := n.URL
@@ -141,6 +139,7 @@ func (n *bootstrapper) get() (*tls.Config, dialHandler, error) {
 	// if n.address's host is an IP, just use it right away
 	ip := net.ParseIP(host)
 	if ip != nil {
+		log.Tracef("\n---slow path with ip address\n")
 		n.RUnlock()
 
 		// Upgrade lock to protect n.resolved
@@ -207,6 +206,10 @@ func (n *bootstrapper) createTLSConfig(host string) *tls.Config {
 		MinVersion:            tls.VersionTLS12,
 		InsecureSkipVerify:    n.options.InsecureSkipVerify,
 		VerifyPeerCertificate: n.options.VerifyServerCertificate,
+	}
+	if n.options.ClientSessionCache != nil {
+		tlsConfig.ClientSessionCache = options.ClientSessionCache
+		log.Tracef("\n---setting client session cache\n")
 	}
 
 	// Depending on the URL scheme, we choose what ALPN will be advertised by
