@@ -80,6 +80,7 @@ func parseHostAndPort(addr string) (string, string, error) {
 // * sdns://... -- DNS stamp (see https://dnscrypt.info/stamps-specifications)
 // options -- Upstream customization options, nil means default options.
 func AddressToUpstream(address string, options *Options) (Upstream, error) {
+	log.Tracef("\n---creating new bootstrapper with command line supplied upstream\n")
 	if options == nil {
 		options = &Options{}
 	}
@@ -89,6 +90,7 @@ func AddressToUpstream(address string, options *Options) (Upstream, error) {
 		if err != nil {
 			return nil, errorx.Decorate(err, "failed to parse %s", address)
 		}
+		log.Tracef("\n---going to urlToUpstream()\n")
 		return urlToUpstream(upstreamURL, options)
 	}
 
