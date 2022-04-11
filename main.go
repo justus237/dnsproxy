@@ -230,8 +230,12 @@ func run(options *Options) {
 	// Prepare the proxy server
 	tokenStore := quic.NewLRUTokenStore(5, 50)
 	clientSessionCache := tls.NewLRUClientSessionCache(100)
+	log.Printf("---before createProxyConfig: tokenStore: %s\n", tokenStore)
+	log.Printf("---before createProxyConfig: clientSessionCache: %s\n", clientSessionCache)
 	config := createProxyConfig(options, tokenStore, clientSessionCache)
 	dnsProxy := &proxy.Proxy{Config: config}
+	log.Printf("---after createProxyConfig: tokenStore: %s\n", tokenStore)
+	log.Printf("---after createProxyConfig: clientSessionCache: %s\n", clientSessionCache)
 	
 
 	// Init DNS64 if needed
