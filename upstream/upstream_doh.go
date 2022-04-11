@@ -172,6 +172,9 @@ func (p *dnsOverHTTPS) createTransport() (*http.Transport, error) {
 	if err != nil {
 		return nil, errorx.Decorate(err, "couldn't bootstrap %s", p.boot.URL)
 	}
+	if tlsConfig.ClientSessionCache != nil {
+		log.Printf("---dnsOverHTTPS.createTransport(): clientSessionCache: %s\n", tlsConfig.ClientSessionCache)
+	}
 
 	transport := &http.Transport{
 		TLSClientConfig:    tlsConfig,
