@@ -238,6 +238,12 @@ func (p *dnsOverQUIC) openSession() (quic.Session, error) {
 	if err != nil {
 		return nil, err
 	}
+	if tlsConfig.ClientSessionCache != nil {
+		log.Tracef("\n tls config has client session cache\n")
+	} else {
+		log.Tracef("\n tls config does not have client session cache\n")
+	}
+	
 
 	// we're using bootstrapped address instead of what's passed to the function
 	// it does not create an actual connection, but it helps us determine
