@@ -210,6 +210,8 @@ func (n *bootstrapper) createTLSConfig(host string) *tls.Config {
 	if n.options.ClientSessionCache != nil {
 		tlsConfig.ClientSessionCache = n.options.ClientSessionCache
 		log.Tracef("\n---setting client session cache\n")
+	} else {
+		log.Tracef("\n---original client session cache was nil and not handed through\n")
 	}
 
 	// Depending on the URL scheme, we choose what ALPN will be advertised by
