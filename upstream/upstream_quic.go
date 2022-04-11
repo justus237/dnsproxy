@@ -251,6 +251,9 @@ func (p *dnsOverQUIC) openSession() (quic.Session, error) {
 		}
 	}
 	
+	if p.tokenStore != nil {
+		log.Tracef("\n---token store of dnsOverQUIC is not nil\n")
+	}
 
 	// we're using bootstrapped address instead of what's passed to the function
 	// it does not create an actual connection, but it helps us determine
