@@ -110,7 +110,7 @@ func urlToBoot(resolverURL *url.URL, opts *Options) (*bootstrapper, error) {
 	if len(opts.ServerIPAddrs) == 0 {
 		return newBootstrapper(resolverURL, opts)
 	}
-
+	log.Tracef("\n---creating new bootstrapper with command line supplied upstream\n")
 	return newBootstrapperResolved(resolverURL, opts)
 }
 
