@@ -208,7 +208,7 @@ func (n *bootstrapper) createTLSConfig(host string) *tls.Config {
 		VerifyPeerCertificate: n.options.VerifyServerCertificate,
 	}
 	if n.options.ClientSessionCache != nil {
-		tlsConfig.ClientSessionCache = options.ClientSessionCache
+		tlsConfig.ClientSessionCache = n.options.ClientSessionCache
 		log.Tracef("\n---setting client session cache\n")
 	}
 
