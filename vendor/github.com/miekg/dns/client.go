@@ -100,10 +100,14 @@ func (c *Client) Dial(address string) (conn *Conn, err error) {
 
 	conn = new(Conn)
 	switch network {
-		case "tcp":
+	case "tcp":
+		if useTLS {
+			log.Tracef("\nmetrics:DoT TCP+TLS handshakes start: %v\n", time.Now().Format(time.StampMilli))
+		} else {
 			log.Tracef("\nmetrics:DoTCP TCP handshake start: %v\n", time.Now().Format(time.StampMilli))
-		case "udp":
-			log.Tracef("\nmetrics:DoUDP UDP socket setup start: %v\n", time.Now().Format(time.StampMilli))
+		}
+	case "udp":
+		log.Tracef("\nmetrics:DoUDP UDP socket setup start: %v\n", time.Now().Format(time.StampMilli))
 	}
 	if useTLS {
 		network = strings.TrimSuffix(network, "-tls")
@@ -118,9 +122,13 @@ func (c *Client) Dial(address string) (conn *Conn, err error) {
 		return nil, err
 	}
 	switch network {
-		case "tcp":
+	case "tcp":
+		if useTLS {
+			log.Tracef("\nmetrics:DoT TCP+TLS handshakes finished: %v\n", time.Now().Format(time.StampMilli))
+		} else {
 			log.Tracef("\nmetrics:DoTCP TCP handshake finished: %v\n", time.Now().Format(time.StampMilli))
-		case "udp":
+		}
+	case "udp":
 			log.Tracef("\nmetrics:DoUDP UDP socket setup finished: %v\n", time.Now().Format(time.StampMilli))
 	}
 	conn.UDPSize = c.UDPSize
