@@ -172,7 +172,7 @@ func (c *Client) ExchangeWithConn(m *Msg, conn *Conn) (r *Msg, rtt time.Duration
 }
 
 func (c *Client) exchange(m *Msg, co *Conn) (r *Msg, rtt time.Duration, err error) {
-
+	q := m.Question[0].String()
 	opt := m.IsEdns0()
 	// If EDNS0 is used use that for size.
 	if opt != nil && opt.UDPSize() >= MinMsgSize {
@@ -187,6 +187,11 @@ func (c *Client) exchange(m *Msg, co *Conn) (r *Msg, rtt time.Duration, err erro
 	t := time.Now()
 	// write with the appropriate write timeout
 	co.SetWriteDeadline(t.Add(c.getTimeoutForRequest(c.writeTimeout())))
+	if c.Net == "tcp" {
+		log.Tracef("\nmetrics:DoTCP query send for %s: %v\n", q, time.Now().Format(time.StampMilli))
+	} else if c.Net == "udp" {
+		log.Tracef("\nmetrics:DoUDP query send for %s: %v\n", q, time.Now().Format(time.StampMilli))
+	}
 	if err = co.WriteMsg(m); err != nil {
 		return nil, 0, err
 	}
@@ -206,6 +211,11 @@ func (c *Client) exchange(m *Msg, co *Conn) (r *Msg, rtt time.Duration, err erro
 		if err == nil && r.Id != m.Id {
 			err = ErrId
 		}
+	}
+	if c.Net == "tcp" {
+		log.Tracef("\nmetrics:DoTCP answer receive for %s: %v\n", q, time.Now().Format(time.StampMilli))
+	} else if c.Net == "udp" {
+		log.Tracef("\nmetrics:DoUDP answer receive for %s: %v\n", q, time.Now().Format(time.StampMilli))
 	}
 	rtt = time.Since(t)
 	return r, rtt, err
