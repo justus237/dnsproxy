@@ -66,7 +66,7 @@ func (n *TLSPool) Get() (net.Conn, error) {
 
 // Create creates a new connection for the pool (but not puts it there)
 func (n *TLSPool) Create() (net.Conn, error) {
-	log.Tracef("\n\033[34mEstablishing new DoT connection\nTime: %v\n\033[0m", time.Now().Format(time.StampMilli))
+	log.Tracef("\n\033[34mEstablishing new DoT connection at: %v\n\033[0m", time.Now().Format(time.StampMilli))
 	tlsConfig, dialContext, err := n.boot.get()
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (n *TLSPool) Create() (net.Conn, error) {
 	if err != nil {
 		return nil, errorx.Decorate(err, "Failed to connect to %s", tlsConfig.ServerName)
 	}
-	log.Tracef("\n\033[34mEstablished new DoT connection\nTime: %v\n\033[0m", time.Now().Format(time.StampMilli))
+	log.Tracef("\n\033[34mEstablished new DoT connection at: %v\n\033[0m", time.Now().Format(time.StampMilli))
 	return conn, nil
 }
 
