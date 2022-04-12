@@ -129,14 +129,14 @@ func (c *Client) Dial(address string) (conn *Conn, err error) {
 // attribute appropriately
 func (c *Client) Exchange(m *Msg, address string) (r *Msg, rtt time.Duration, err error) {
 	if c.Net == "tcp" {
-		log.Tracef("\n\033[34mEstablishing new DoTCP connection\nTime: %v\n\033[0m", time.Now().Format(time.StampMilli))
+		log.Tracef("\n\033[34mEstablishing new DoTCP connection at: %v\n\033[0m", time.Now().Format(time.StampMilli))
 	}
 	co, err := c.Dial(address)
 	if err != nil {
 		return nil, 0, err
 	}
 	if c.Net == "tcp" {
-		log.Tracef("\n\033[34mEstablished new DoTCP connection\nTime: %v\n\033[0m", time.Now().Format(time.StampMilli))
+		log.Tracef("\n\033[34mEstablished new DoTCP connection at: %v\n\033[0m", time.Now().Format(time.StampMilli))
 	}
 	defer co.Close()
 	return c.ExchangeWithConn(m, co)
