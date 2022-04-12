@@ -27,6 +27,7 @@ func (p *dnsOverTLS) Address() string { return p.boot.URL.String() }
 
 func (p *dnsOverTLS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 	q := m.Question[0].String()
+	log.Tracef("\nmetrics:DoT exchange started for %s: %v\n", q, time.Now().Format(time.StampMilli))
 	var pool *TLSPool
 	p.RLock()
 	pool = p.pool
@@ -70,12 +71,14 @@ func (p *dnsOverTLS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 		reply, err = p.exchangeConn(poolConn, m)
 		log.Tracef("\n\033[34mDoT answer received for: %s\nTime: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 		logFinish(p.Address(), err)
+		
 	}
 	p.RLock()
 	if err == nil && p.pool != nil {
 		p.pool.Put(poolConn)
 	}
 	p.RUnlock()
+	log.Tracef("\nmetrics:DoT exchange finished for %s: %v\n", q, time.Now().Format(time.StampMilli))
 	return reply, err
 }
 
