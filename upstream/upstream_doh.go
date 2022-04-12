@@ -53,6 +53,7 @@ func (p *dnsOverHTTPS) Address() string { return p.boot.URL.String() }
 func (p *dnsOverHTTPS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 	q := m.Question[0].String()
 	log.Tracef("\n\033[34mStarting DoH exchange for: %s\nTime: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
+	log.Tracef("\nmetrics:DoH exchange started for %s: %v\n", q, time.Now().Format(time.StampMilli))
 	client, err := p.getClient()
 	if err != nil {
 		return nil, errorx.Decorate(err, "couldn't initialize HTTP client or transport")
@@ -62,6 +63,7 @@ func (p *dnsOverHTTPS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 	r, err := p.exchangeHTTPSClient(m, client)
 	log.Tracef("\n\033[34mDoH answer received for: %s\nTime: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 	logFinish(p.Address(), err)
+	log.Tracef("\nmetrics:DoH exchange finished for %s: %v\n", q, time.Now().Format(time.StampMilli))
 
 	return r, err
 }
@@ -75,6 +77,7 @@ func (p *dnsOverHTTPS) Reset() {
 // exchangeHTTPSClient sends the DNS query to a DOH resolver using the specified
 // http.Client instance.
 func (p *dnsOverHTTPS) exchangeHTTPSClient(m *dns.Msg, client *http.Client) (*dns.Msg, error) {
+	q := m.Question[0].String()
 	buf, err := m.Pack()
 	if err != nil {
 		return nil, errorx.Decorate(err, "couldn't pack request msg")
@@ -88,7 +91,8 @@ func (p *dnsOverHTTPS) exchangeHTTPSClient(m *dns.Msg, client *http.Client) (*dn
 		return nil, errorx.Decorate(err, "couldn't create a HTTP request to %s", p.boot.URL)
 	}
 	req.Header.Set("Accept", "application/dns-message")
-
+	
+	log.Tracef("\nmetrics:DoH query send for %s: %v\n", q, time.Now().Format(time.StampMilli))
 	resp, err := client.Do(req)
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
@@ -107,6 +111,7 @@ func (p *dnsOverHTTPS) exchangeHTTPSClient(m *dns.Msg, client *http.Client) (*dn
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
+	log.Tracef("\nmetrics:DoH answer receive for %s: %v\n", q, time.Now().Format(time.StampMilli))
 	if err != nil {
 		return nil, errorx.Decorate(err, "couldn't read body contents for '%s'", p.boot.URL)
 	}
@@ -192,12 +197,13 @@ func (p *dnsOverHTTPS) createTransport() (*http.Transport, error) {
 	// Explicitly configure transport to use HTTP/2.
 	//
 	// See https://github.com/AdguardTeam/dnsproxy/issues/11.
+	log.Tracef("\nmetrics:DoH transport configuration start: %v\n", time.Now().Format(time.StampMilli))
 	var transportH2 *http2.Transport
 	transportH2, err = http2.ConfigureTransports(transport)
 	if err != nil {
 		return nil, err
 	}
-
+	log.Tracef("\nmetrics:DoH transport configuration finished: %v\n", time.Now().Format(time.StampMilli))
 	// Enable HTTP/2 pings on idle connections.
 	transportH2.ReadIdleTimeout = transportDefaultReadIdleTimeout
 
