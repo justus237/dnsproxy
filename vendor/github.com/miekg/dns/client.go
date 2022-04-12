@@ -196,6 +196,7 @@ func (c *Client) ExchangeWithConn(m *Msg, conn *Conn) (r *Msg, rtt time.Duration
 func (c *Client) exchange(m *Msg, co *Conn) (r *Msg, rtt time.Duration, err error) {
 	q := m.Question[0].String()
 	network := c.Net
+	log.Tracef("\ntransport proto: %s\n", network)
 	opt := m.IsEdns0()
 	// If EDNS0 is used use that for size.
 	if opt != nil && opt.UDPSize() >= MinMsgSize {
