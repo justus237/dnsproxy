@@ -34,7 +34,9 @@ func (p *plainDNS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 		tcpClient := dns.Client{Net: "tcp", Timeout: p.timeout}
 
 		logBegin(p.Address(), m)
+		log.Tracef("\nmetrics:DoTCP exchange started for %s: %v\n", q, time.Now().Format(time.StampMilli))
 		reply, _, tcpErr := tcpClient.Exchange(m, p.address)
+		log.Tracef("\nmetrics:DoTCP exchange finished for %s: %v\n", q, time.Now().Format(time.StampMilli))
 		log.Tracef("\n\033[34mDoTCP answer received for: %s\nTime: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 		logFinish(p.Address(), tcpErr)
 		return reply, tcpErr
@@ -44,7 +46,9 @@ func (p *plainDNS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 
 	logBegin(p.Address(), m)
 	log.Tracef("\n\033[34mStarting DoUDP exchange for: %s\nTime: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
+	log.Tracef("\nmetrics:DoUDP exchange started for %s: %v\n", q, time.Now().Format(time.StampMilli))
 	reply, _, err := client.Exchange(m, p.address)
+	log.Tracef("\nmetrics:DoUDP exchange finished for %s: %v\n", q, time.Now().Format(time.StampMilli))
 	log.Tracef("\n\033[34mDoUDP answer received for: %s\nTime: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 	logFinish(p.Address(), err)
 
@@ -53,7 +57,9 @@ func (p *plainDNS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 		log.Tracef("\n\033[34mStarting DoTCP exchange for: %s\nTime: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 		tcpClient := dns.Client{Net: "tcp", Timeout: p.timeout}
 		logBegin(p.Address(), m)
+		log.Tracef("\nmetrics:DoTCP fallback exchange started for %s: %v\n", q, time.Now().Format(time.StampMilli))
 		reply, _, err = tcpClient.Exchange(m, p.address)
+		log.Tracef("\nmetrics:DoTCP fallback exchange finished for %s: %v\n", q, time.Now().Format(time.StampMilli))
 		log.Tracef("\n\033[34mDoTCP answer received for: %s\nTime: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 		logFinish(p.Address(), err)
 	}
