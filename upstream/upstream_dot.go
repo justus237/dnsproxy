@@ -90,6 +90,8 @@ func (p *dnsOverTLS) Reset() {
 
 func (p *dnsOverTLS) exchangeConn(poolConn net.Conn, m *dns.Msg) (*dns.Msg, error) {
 	c := dns.Conn{Conn: poolConn}
+	q := m.Question[0].String()
+	log.Tracef("\nmetrics:DoH query send for %s: %v\n", q, time.Now().Format(time.StampMilli))
 	err := c.WriteMsg(m)
 	if err != nil {
 		poolConn.Close()
@@ -97,6 +99,7 @@ func (p *dnsOverTLS) exchangeConn(poolConn net.Conn, m *dns.Msg) (*dns.Msg, erro
 	}
 
 	reply, err := c.ReadMsg()
+	log.Tracef("\nmetrics:DoH answer receive for %s: %v\n", q, time.Now().Format(time.StampMilli))
 	if err != nil {
 		poolConn.Close()
 		return nil, errorx.Decorate(err, "Failed to read a request from %s", p.Address())
