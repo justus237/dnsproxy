@@ -273,7 +273,7 @@ func (p *dnsOverQUIC) openSession() (quic.Session, error) {
 	}
 
 	// Store version information
-	versions := []quic.VersionNumber{quic.VersionDraft34, quic.VersionDraft32, quic.VersionDraft29, quic.Version1}
+	versions := []quic.VersionNumber{quic.Version1, quic.VersionDraft34, quic.VersionDraft32, quic.VersionDraft29}
 	version := p.version
 	if version != 0x0 {
 		versions = []quic.VersionNumber{version}
