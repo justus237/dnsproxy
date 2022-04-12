@@ -52,7 +52,7 @@ func (p *dnsOverHTTPS) Address() string { return p.boot.URL.String() }
 
 func (p *dnsOverHTTPS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 	q := m.Question[0].String()
-	log.Tracef("\n\033[34mStarting DoH exchange for: %s\nTime: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
+	log.Tracef("\n\033[34mStarting DoH exchange for: %s at: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 	log.Tracef("\nmetrics:DoH exchange started for %s: %v\n", q, time.Now().Format(time.StampMilli))
 	client, err := p.getClient()
 	if err != nil {
@@ -61,7 +61,7 @@ func (p *dnsOverHTTPS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 
 	logBegin(p.Address(), m)
 	r, err := p.exchangeHTTPSClient(m, client)
-	log.Tracef("\n\033[34mDoH answer received for: %s\nTime: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
+	log.Tracef("\n\033[34mDoH answer received for: %s at: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 	logFinish(p.Address(), err)
 	log.Tracef("\nmetrics:DoH exchange finished for %s: %v\n", q, time.Now().Format(time.StampMilli))
 
@@ -106,7 +106,7 @@ func (p *dnsOverHTTPS) exchangeHTTPSClient(m *dns.Msg, client *http.Client) (*dn
 			p.client = nil
 			p.clientGuard.Unlock()
 		}
-
+		log.Tracef("\nmetrics:DoH answer timeout for %s: %v\n", q, time.Now().Format(time.StampMilli))
 		return nil, errorx.Decorate(err, "couldn't do a GET request to '%s'", p.boot.URL)
 	}
 
