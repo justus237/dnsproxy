@@ -214,7 +214,8 @@ func (c *Client) exchange(m *Msg, co *Conn) (r *Msg, rtt time.Duration, err erro
 	switch network {
 		case "tcp":
 			log.Tracef("\nmetrics:DoTCP query send for %s: %v\n", q, time.Now().Format(time.StampMilli))
-		case "udp":
+		default:
+		//for some reason the string is empty for udp
 			log.Tracef("\nmetrics:DoUDP query send for %s: %v\n", q, time.Now().Format(time.StampMilli))
 	}
 	if err = co.WriteMsg(m); err != nil {
@@ -240,7 +241,8 @@ func (c *Client) exchange(m *Msg, co *Conn) (r *Msg, rtt time.Duration, err erro
 	switch network {
 		case "tcp":
 			log.Tracef("\nmetrics:DoTCP answer receive for %s: %v\n", q, time.Now().Format(time.StampMilli))
-		case "udp":
+		default:
+		//for some reason the string is empty for udp
 			log.Tracef("\nmetrics:DoUDP answer receive for %s: %v\n", q, time.Now().Format(time.StampMilli))
 	}
 	rtt = time.Since(t)
