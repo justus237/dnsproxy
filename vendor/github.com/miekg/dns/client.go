@@ -104,7 +104,19 @@ func (c *Client) Dial(address string) (conn *Conn, err error) {
 
 		conn.Conn, err = tls.DialWithDialer(&d, network, address, c.TLSConfig)
 	} else {
+		switch network {
+		case "tcp":
+			log.Tracef("\nmetrics:DoTCP TCP handshake start: %v\n", time.Now().Format(time.StampMilli))
+		case "udp":
+			log.Tracef("\nmetrics:DoUDP UDP socket setup start: %v\n", time.Now().Format(time.StampMilli))
+		}
 		conn.Conn, err = d.Dial(network, address)
+		switch network {
+		case "tcp":
+			log.Tracef("\nmetrics:DoTCP TCP handshake finished: %v\n", time.Now().Format(time.StampMilli))
+		case "udp":
+			log.Tracef("\nmetrics:DoUDP UDP socket setup finished: %v\n", time.Now().Format(time.StampMilli))
+		}
 	}
 	if err != nil {
 		return nil, err
