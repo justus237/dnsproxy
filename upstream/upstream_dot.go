@@ -39,7 +39,7 @@ func (p *dnsOverTLS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 		p.Unlock()
 	}
 
-	log.Tracef("\n\033[34mStarting DoT exchange for: %s\nTime: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
+	log.Tracef("\n\033[34mStarting DoT exchange for: %s at: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 	p.RLock()
 	poolConn, err := p.pool.Get()
 	p.RUnlock()
@@ -49,7 +49,7 @@ func (p *dnsOverTLS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 
 	logBegin(p.Address(), m)
 	reply, err := p.exchangeConn(poolConn, m)
-	log.Tracef("\n\033[34mDoT answer received for: %s\nTime: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
+	log.Tracef("\n\033[34mDoT answer received for: %s at: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 	logFinish(p.Address(), err)
 	if err != nil {
 		log.Tracef("The TLS connection is expired due to %s", err)
@@ -67,9 +67,9 @@ func (p *dnsOverTLS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 
 		// Retry sending the DNS request
 		logBegin(p.Address(), m)
-		log.Tracef("\n\033[34mSending DoT query: %s\nTime: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
+		log.Tracef("\n\033[34mSending DoT query: %s at: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 		reply, err = p.exchangeConn(poolConn, m)
-		log.Tracef("\n\033[34mDoT answer received for: %s\nTime: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
+		log.Tracef("\n\033[34mDoT answer received for: %s at: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 		logFinish(p.Address(), err)
 		
 	}
