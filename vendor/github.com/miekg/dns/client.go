@@ -11,6 +11,7 @@ import (
 	"net"
 	"strings"
 	"time"
+
 	"github.com/AdguardTeam/golibs/log"
 )
 
@@ -99,37 +100,42 @@ func (c *Client) Dial(address string) (conn *Conn, err error) {
 	useTLS := strings.HasPrefix(network, "tcp") && strings.HasSuffix(network, "-tls")
 
 	conn = new(Conn)
+	handshakeStart := time.Now()
 	switch network {
 	case "tcp":
 		if useTLS {
-			log.Tracef("\nmetrics:DoT TCP+TLS handshakes start: %v\n", time.Now().Format(time.StampMilli))
+			log.Tracef("\nmetrics:DoT TCP+TLS handshakes start: %v\n", handshakeStart.Format(time.StampMilli))
 		} else {
-			log.Tracef("\nmetrics:DoTCP TCP handshake start: %v\n", time.Now().Format(time.StampMilli))
+			log.Tracef("\nmetrics:DoTCP TCP handshake start: %v\n", handshakeStart.Format(time.StampMilli))
 		}
 	case "udp":
-		log.Tracef("\nmetrics:DoUDP UDP socket setup start: %v\n", time.Now().Format(time.StampMilli))
+		log.Tracef("\nmetrics:DoUDP UDP socket setup start: %v\n", handshakeStart.Format(time.StampMilli))
 	}
 	if useTLS {
 		network = strings.TrimSuffix(network, "-tls")
 
 		conn.Conn, err = tls.DialWithDialer(&d, network, address, c.TLSConfig)
 	} else {
-		
+
 		conn.Conn, err = d.Dial(network, address)
-		
+
 	}
 	if err != nil {
 		return nil, err
 	}
+	handshakeDone := time.Now()
 	switch network {
 	case "tcp":
 		if useTLS {
-			log.Tracef("\nmetrics:DoT TCP+TLS handshakes finished: %v\n", time.Now().Format(time.StampMilli))
+			log.Tracef("\nmetrics:DoT TCP+TLS handshakes finished: %v\n", handshakeDone.Format(time.StampMilli))
+			log.Tracef("\nmetrics:DoT TCP+TLS handshake duration: %s\n", handshakeDone.Sub(handshakeStart))
 		} else {
-			log.Tracef("\nmetrics:DoTCP TCP handshake finished: %v\n", time.Now().Format(time.StampMilli))
+			log.Tracef("\nmetrics:DoTCP TCP handshake finished: %v\n", handshakeDone.Format(time.StampMilli))
+			log.Tracef("\nmetrics:DoTCP TCP handshake duration: %s\n", handshakeDone.Sub(handshakeStart))
 		}
 	case "udp":
-			log.Tracef("\nmetrics:DoUDP UDP socket setup finished: %v\n", time.Now().Format(time.StampMilli))
+		log.Tracef("\nmetrics:DoUDP UDP socket setup finished: %v\n", handshakeDone.Format(time.StampMilli))
+		log.Tracef("\nmetrics:DoUDP UDP setup duration: %s\n", handshakeDone.Sub(handshakeStart))
 	}
 	conn.UDPSize = c.UDPSize
 	return conn, nil
@@ -211,12 +217,13 @@ func (c *Client) exchange(m *Msg, co *Conn) (r *Msg, rtt time.Duration, err erro
 	t := time.Now()
 	// write with the appropriate write timeout
 	co.SetWriteDeadline(t.Add(c.getTimeoutForRequest(c.writeTimeout())))
+	querySend := time.Now()
 	switch network {
-		case "tcp":
-			log.Tracef("\nmetrics:DoTCP query send for %s: %v\n", q, time.Now().Format(time.StampMilli))
-		default:
+	case "tcp":
+		log.Tracef("\nmetrics:DoTCP query send for %s: %v\n", q, querySend.Format(time.StampMilli))
+	default:
 		//for some reason the string is empty for udp
-			log.Tracef("\nmetrics:DoUDP query send for %s: %v\n", q, time.Now().Format(time.StampMilli))
+		log.Tracef("\nmetrics:DoUDP query send for %s: %v\n", q, querySend.Format(time.StampMilli))
 	}
 	if err = co.WriteMsg(m); err != nil {
 		return nil, 0, err
@@ -238,12 +245,15 @@ func (c *Client) exchange(m *Msg, co *Conn) (r *Msg, rtt time.Duration, err erro
 			err = ErrId
 		}
 	}
+	answerReceive := time.Now()
 	switch network {
-		case "tcp":
-			log.Tracef("\nmetrics:DoTCP answer receive for %s: %v\n", q, time.Now().Format(time.StampMilli))
-		default:
+	case "tcp":
+		log.Tracef("\nmetrics:DoTCP answer receive for %s: %v\n", q, answerReceive.Format(time.StampMilli))
+		log.Tracef("\nmetrics:DoTCP query duration: %s\n", answerReceive.Sub(querySend))
+	default:
 		//for some reason the string is empty for udp
-			log.Tracef("\nmetrics:DoUDP answer receive for %s: %v\n", q, time.Now().Format(time.StampMilli))
+		log.Tracef("\nmetrics:DoUDP answer receive for %s: %v\n", q, answerReceive.Format(time.StampMilli))
+		log.Tracef("\nmetrics:DoUDP query duration: %s\n", answerReceive.Sub(querySend))
 	}
 	rtt = time.Since(t)
 	return r, rtt, err

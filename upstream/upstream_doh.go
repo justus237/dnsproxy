@@ -3,12 +3,13 @@ package upstream
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/AdguardTeam/golibs/log"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/AdguardTeam/golibs/log"
 
 	"github.com/joomcode/errorx"
 	"github.com/miekg/dns"
@@ -53,17 +54,26 @@ func (p *dnsOverHTTPS) Address() string { return p.boot.URL.String() }
 func (p *dnsOverHTTPS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 	q := m.Question[0].String()
 	log.Tracef("\n\033[34mStarting DoH exchange for: %s at: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
-	log.Tracef("\nmetrics:DoH exchange started for %s: %v\n", q, time.Now().Format(time.StampMilli))
+	exchangeStart := time.Now()
+	log.Tracef("\nmetrics:DoH exchange started for %s: %v\n", q, exchangeStart.Format(time.StampMilli))
+	//cannot really log handshake time due to lazy initialization...
+	/*handshakeStart := time.Now()
+	log.Tracef("\nmetrics:DoH transport configuration start: %v\n", handshakeStart.Format(time.StampMilli))*/
 	client, err := p.getClient()
 	if err != nil {
 		return nil, errorx.Decorate(err, "couldn't initialize HTTP client or transport")
 	}
+	/*handshakeDone := time.Now()
+	log.Tracef("\nmetrics:DoH transport configuration finished: %v\n", handshakeDone.Format(time.StampMilli))
+	log.Tracef("\nmetrics:DoH transport configuration duration: %s\n", handshakeDone.Sub(handshakeStart))*/
 
 	logBegin(p.Address(), m)
 	r, err := p.exchangeHTTPSClient(m, client)
 	log.Tracef("\n\033[34mDoH answer received for: %s at: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 	logFinish(p.Address(), err)
-	log.Tracef("\nmetrics:DoH exchange finished for %s: %v\n", q, time.Now().Format(time.StampMilli))
+	exchangeFinished := time.Now()
+	log.Tracef("\nmetrics:DoH exchange finished for %s: %v\n", q, exchangeFinished.Format(time.StampMilli))
+	log.Tracef("\nmetrics:DoH exchange duration: %s\n", exchangeFinished.Sub(exchangeStart))
 
 	return r, err
 }
@@ -91,8 +101,9 @@ func (p *dnsOverHTTPS) exchangeHTTPSClient(m *dns.Msg, client *http.Client) (*dn
 		return nil, errorx.Decorate(err, "couldn't create a HTTP request to %s", p.boot.URL)
 	}
 	req.Header.Set("Accept", "application/dns-message")
-	
-	log.Tracef("\nmetrics:DoH query send for %s: %v\n", q, time.Now().Format(time.StampMilli))
+
+	querySend := time.Now()
+	log.Tracef("\nmetrics:DoH query send for %s: %v\n", q, querySend.Format(time.StampMilli))
 	resp, err := client.Do(req)
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
@@ -106,12 +117,14 @@ func (p *dnsOverHTTPS) exchangeHTTPSClient(m *dns.Msg, client *http.Client) (*dn
 			p.client = nil
 			p.clientGuard.Unlock()
 		}
-		log.Tracef("\nmetrics:DoH answer timeout for %s: %v\n", q, time.Now().Format(time.StampMilli))
+		//log.Tracef("\nmetrics:DoH answer timeout for %s: %v\n", q, time.Now().Format(time.StampMilli))
 		return nil, errorx.Decorate(err, "couldn't do a GET request to '%s'", p.boot.URL)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
-	log.Tracef("\nmetrics:DoH answer receive for %s: %v\n", q, time.Now().Format(time.StampMilli))
+	answerReceive := time.Now()
+	log.Tracef("\nmetrics:DoH answer receive for %s: %v\n", q, answerReceive.Format(time.StampMilli))
+	log.Tracef("\nmetrics:DoH query duration: %s\n", answerReceive.Sub(querySend))
 	if err != nil {
 		return nil, errorx.Decorate(err, "couldn't read body contents for '%s'", p.boot.URL)
 	}
@@ -197,13 +210,12 @@ func (p *dnsOverHTTPS) createTransport() (*http.Transport, error) {
 	// Explicitly configure transport to use HTTP/2.
 	//
 	// See https://github.com/AdguardTeam/dnsproxy/issues/11.
-	log.Tracef("\nmetrics:DoH transport configuration start: %v\n", time.Now().Format(time.StampMilli))
 	var transportH2 *http2.Transport
 	transportH2, err = http2.ConfigureTransports(transport)
 	if err != nil {
 		return nil, err
 	}
-	log.Tracef("\nmetrics:DoH transport configuration finished: %v\n", time.Now().Format(time.StampMilli))
+
 	// Enable HTTP/2 pings on idle connections.
 	transportH2.ReadIdleTimeout = transportDefaultReadIdleTimeout
 

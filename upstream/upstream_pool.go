@@ -111,9 +111,12 @@ func tlsDial(dialContext dialHandler, network string, config *tls.Config) (*tls.
 		conn.Close()
 		return nil, err
 	}
-	log.Tracef("\nmetrics:DoT TLS handshake start: %v\n", time.Now().Format(time.StampMilli))
+	handshakeStart := time.Now()
+	log.Tracef("\nmetrics:DoT TLS handshake start: %v\n", handshakeStart.Format(time.StampMilli))
 	err = conn.Handshake()
-	log.Tracef("\nmetrics:DoT TLS handshake finished: %v\n", time.Now().Format(time.StampMilli))
+	handshakeDone := time.Now()
+	log.Tracef("\nmetrics:DoT TLS handshake finished: %v\n", handshakeDone.Format(time.StampMilli))
+	log.Tracef("\nmetrics:DoT TLS handshake duration: %s\n", handshakeDone.Sub(handshakeStart))
 	if err != nil {
 		conn.Close()
 		return nil, err

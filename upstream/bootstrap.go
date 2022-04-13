@@ -78,7 +78,6 @@ func newBootstrapperResolved(upsURL *url.URL, options *Options) (*bootstrapper, 
 	}
 	b.dialContext = b.createDialContext(resolverAddresses)
 	b.resolvedConfig = b.createTLSConfig(host)
-	
 
 	return b, nil
 }

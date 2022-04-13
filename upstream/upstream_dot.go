@@ -27,7 +27,8 @@ func (p *dnsOverTLS) Address() string { return p.boot.URL.String() }
 
 func (p *dnsOverTLS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 	q := m.Question[0].String()
-	log.Tracef("\nmetrics:DoT exchange started for %s: %v\n", q, time.Now().Format(time.StampMilli))
+	exchangeStart := time.Now()
+	log.Tracef("\nmetrics:DoT exchange started for %s: %v\n", q, exchangeStart.Format(time.StampMilli))
 	var pool *TLSPool
 	p.RLock()
 	pool = p.pool
@@ -78,7 +79,9 @@ func (p *dnsOverTLS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 		p.pool.Put(poolConn)
 	}
 	p.RUnlock()
-	log.Tracef("\nmetrics:DoT exchange finished for %s: %v\n", q, time.Now().Format(time.StampMilli))
+	exchangeFinished := time.Now()
+	log.Tracef("\nmetrics:DoT exchange finished for %s: %v\n", q, exchangeFinished.Format(time.StampMilli))
+	log.Tracef("\nmetrics:DoT exchange duration: %s\n", exchangeFinished.Sub(exchangeStart))
 	return reply, err
 }
 
@@ -91,7 +94,8 @@ func (p *dnsOverTLS) Reset() {
 func (p *dnsOverTLS) exchangeConn(poolConn net.Conn, m *dns.Msg) (*dns.Msg, error) {
 	c := dns.Conn{Conn: poolConn}
 	q := m.Question[0].String()
-	log.Tracef("\nmetrics:DoT query send for %s: %v\n", q, time.Now().Format(time.StampMilli))
+	querySend := time.Now()
+	log.Tracef("\nmetrics:DoT query send for %s: %v\n", q, querySend.Format(time.StampMilli))
 	err := c.WriteMsg(m)
 	if err != nil {
 		poolConn.Close()
@@ -99,7 +103,9 @@ func (p *dnsOverTLS) exchangeConn(poolConn net.Conn, m *dns.Msg) (*dns.Msg, erro
 	}
 
 	reply, err := c.ReadMsg()
-	log.Tracef("\nmetrics:DoT answer receive for %s: %v\n", q, time.Now().Format(time.StampMilli))
+	answerReceive := time.Now()
+	log.Tracef("\nmetrics:DoT answer receive for %s: %v\n", q, answerReceive.Format(time.StampMilli))
+	log.Tracef("\nmetrics:DoT query duration: %s\n", answerReceive.Sub(querySend))
 	if err != nil {
 		poolConn.Close()
 		return nil, errorx.Decorate(err, "Failed to read a request from %s", p.Address())
