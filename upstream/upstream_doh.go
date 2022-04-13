@@ -124,7 +124,7 @@ func (p *dnsOverHTTPS) exchangeHTTPSClient(m *dns.Msg, client *http.Client) (*dn
 	body, err := ioutil.ReadAll(resp.Body)
 	answerReceive := time.Now()
 	log.Tracef("\nmetrics:DoH answer receive for %s: %v\n", q, answerReceive.Format(time.StampMilli))
-	log.Tracef("\nmetrics:DoH query duration: %s\n", answerReceive.Sub(querySend))
+	log.Tracef("\nmetrics:DoH query (and likely handshake) duration: %s\n", answerReceive.Sub(querySend))
 	if err != nil {
 		return nil, errorx.Decorate(err, "couldn't read body contents for '%s'", p.boot.URL)
 	}
