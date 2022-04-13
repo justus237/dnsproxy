@@ -101,7 +101,7 @@ func (c *Client) Dial(address string) (conn *Conn, err error) {
 
 	conn = new(Conn)
 	handshakeStart := time.Now()
-	switch network {
+	/*switch network {
 	case "tcp":
 		if useTLS {
 			log.Tracef("\nmetrics:DoT TCP+TLS handshakes start: %v\n", handshakeStart.Format(time.StampMilli))
@@ -110,7 +110,7 @@ func (c *Client) Dial(address string) (conn *Conn, err error) {
 		}
 	case "udp":
 		log.Tracef("\nmetrics:DoUDP UDP socket setup start: %v\n", handshakeStart.Format(time.StampMilli))
-	}
+	}*/
 	if useTLS {
 		network = strings.TrimSuffix(network, "-tls")
 
@@ -127,14 +127,14 @@ func (c *Client) Dial(address string) (conn *Conn, err error) {
 	switch network {
 	case "tcp":
 		if useTLS {
-			log.Tracef("\nmetrics:DoT TCP+TLS handshakes finished: %v\n", handshakeDone.Format(time.StampMilli))
+			//log.Tracef("\nmetrics:DoT TCP+TLS handshakes finished: %v\n", handshakeDone.Format(time.StampMilli))
 			log.Tracef("\nmetrics:DoT TCP+TLS handshake duration: %s\n", handshakeDone.Sub(handshakeStart))
 		} else {
-			log.Tracef("\nmetrics:DoTCP TCP handshake finished: %v\n", handshakeDone.Format(time.StampMilli))
+			//log.Tracef("\nmetrics:DoTCP TCP handshake finished: %v\n", handshakeDone.Format(time.StampMilli))
 			log.Tracef("\nmetrics:DoTCP TCP handshake duration: %s\n", handshakeDone.Sub(handshakeStart))
 		}
 	case "udp":
-		log.Tracef("\nmetrics:DoUDP UDP socket setup finished: %v\n", handshakeDone.Format(time.StampMilli))
+		//log.Tracef("\nmetrics:DoUDP UDP socket setup finished: %v\n", handshakeDone.Format(time.StampMilli))
 		log.Tracef("\nmetrics:DoUDP UDP setup duration: %s\n", handshakeDone.Sub(handshakeStart))
 	}
 	conn.UDPSize = c.UDPSize
@@ -218,13 +218,13 @@ func (c *Client) exchange(m *Msg, co *Conn) (r *Msg, rtt time.Duration, err erro
 	// write with the appropriate write timeout
 	co.SetWriteDeadline(t.Add(c.getTimeoutForRequest(c.writeTimeout())))
 	querySend := time.Now()
-	switch network {
+	/*switch network {
 	case "tcp":
 		log.Tracef("\nmetrics:DoTCP query send for %s: %v\n", q, querySend.Format(time.StampMilli))
 	default:
 		//for some reason the string is empty for udp
 		log.Tracef("\nmetrics:DoUDP query send for %s: %v\n", q, querySend.Format(time.StampMilli))
-	}
+	}*/
 	if err = co.WriteMsg(m); err != nil {
 		return nil, 0, err
 	}
@@ -248,12 +248,14 @@ func (c *Client) exchange(m *Msg, co *Conn) (r *Msg, rtt time.Duration, err erro
 	answerReceive := time.Now()
 	switch network {
 	case "tcp":
-		log.Tracef("\nmetrics:DoTCP answer receive for %s: %v\n", q, answerReceive.Format(time.StampMilli))
-		log.Tracef("\nmetrics:DoTCP query duration: %s\n", answerReceive.Sub(querySend))
+		//log.Tracef("\nmetrics:DoTCP answer receive for %s: %v\n", q, answerReceive.Format(time.StampMilli))
+		//log.Tracef("\nmetrics:DoTCP query duration: %s\n", answerReceive.Sub(querySend))
+		log.Tracef("\nmetrics:DoTCP query duration for [%s] from %v to %v: %s\n", q, querySend.Format(time.StampMilli), answerReceive.Format(time.StampMilli), answerReceive.Sub(querySend))
 	default:
 		//for some reason the string is empty for udp
-		log.Tracef("\nmetrics:DoUDP answer receive for %s: %v\n", q, answerReceive.Format(time.StampMilli))
-		log.Tracef("\nmetrics:DoUDP query duration: %s\n", answerReceive.Sub(querySend))
+		//log.Tracef("\nmetrics:DoUDP answer receive for %s: %v\n", q, answerReceive.Format(time.StampMilli))
+		//log.Tracef("\nmetrics:DoUDP query duration: %s\n", answerReceive.Sub(querySend))
+		log.Tracef("\nmetrics:DoUDP query duration for [%s] from %v to %v: %s\n", q, querySend.Format(time.StampMilli), answerReceive.Format(time.StampMilli), answerReceive.Sub(querySend))
 	}
 	rtt = time.Since(t)
 	return r, rtt, err

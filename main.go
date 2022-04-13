@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/lucas-clemente/quic-go"
 	"io/ioutil"
 	"net"
 	"os"
@@ -11,6 +10,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/lucas-clemente/quic-go"
 
 	"github.com/AdguardTeam/dnsproxy/proxy"
 	"github.com/AdguardTeam/dnsproxy/upstream"
@@ -80,7 +81,6 @@ type Options struct {
 
 	// Path to the DNSCrypt configuration file
 	DNSCryptConfigPath string `yaml:"dnscrypt-config" short:"g" long:"dnscrypt-config" description:"Path to a file with DNSCrypt configuration. You can generate one using https://github.com/ameshkov/dnscrypt"`
-	
 
 	// Upstream DNS servers settings
 	// --
@@ -230,17 +230,12 @@ func run(options *Options) {
 	// Prepare the proxy server
 	tokenStore := quic.NewLRUTokenStore(5, 50)
 	clientSessionCache := tls.NewLRUClientSessionCache(100)
-	log.Printf("---before createProxyConfig: tokenStore: %s\n", tokenStore)
-	log.Printf("---before createProxyConfig: clientSessionCache: %s\n", clientSessionCache)
+
 	config := createProxyConfig(options, tokenStore, clientSessionCache)
 	dnsProxy := &proxy.Proxy{Config: config}
-	log.Printf("---after createProxyConfig: tokenStore: %s\n", tokenStore)
-	log.Printf("---after createProxyConfig: clientSessionCache: %s\n", clientSessionCache)
-	
 
 	// Init DNS64 if needed
 	initDNS64(dnsProxy, options)
-
 
 	// Add extra handler if needed
 	if options.IPv6Disabled {
@@ -257,7 +252,7 @@ func run(options *Options) {
 
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
-	infinite:
+infinite:
 	for {
 		sig := <-signalChannel
 		if sig == syscall.SIGUSR1 {
@@ -266,7 +261,6 @@ func run(options *Options) {
 		} else {
 			break infinite
 		}
-
 
 	}
 
@@ -315,7 +309,7 @@ func initUpstreams(config *proxy.Config, options *Options, tokenStore quic.Token
 		InsecureSkipVerify: options.Insecure,
 		Bootstrap:          options.BootstrapDNS,
 		Timeout:            defaultTimeout,
-		TokenStore:	    tokenStore,
+		TokenStore:         tokenStore,
 		ClientSessionCache: clientSessionCache,
 	}
 	upstreamConfig, err := proxy.ParseUpstreamsConfig(upstreams, upsOpts)

@@ -59,7 +59,7 @@ type bootstrapper struct {
 // This can be done only in the case when we already know the resolver IP address.
 // options -- Upstream customization options
 func newBootstrapperResolved(upsURL *url.URL, options *Options) (*bootstrapper, error) {
-	log.Tracef("\n---attempting to make new upstream\n")
+
 	// get a host without port
 	host, port, err := net.SplitHostPort(upsURL.Host)
 	if err != nil {
@@ -116,7 +116,6 @@ type dialHandler func(ctx context.Context, network, addr string) (net.Conn, erro
 func (n *bootstrapper) get() (*tls.Config, dialHandler, error) {
 	n.RLock()
 	if n.dialContext != nil && n.resolvedConfig != nil { // fast path
-		log.Tracef("\n---fast path where tls config gets copied\n")
 		tlsConfig, dialContext := n.resolvedConfig, n.dialContext
 		n.RUnlock()
 		return tlsConfig.Clone(), dialContext, nil
@@ -125,7 +124,6 @@ func (n *bootstrapper) get() (*tls.Config, dialHandler, error) {
 	//
 	// Slow path: resolve the IP address of the n.address's host
 	//
-	log.Tracef("\n---slow path\n")
 
 	// get a host without port
 	addr := n.URL
@@ -138,7 +136,6 @@ func (n *bootstrapper) get() (*tls.Config, dialHandler, error) {
 	// if n.address's host is an IP, just use it right away
 	ip := net.ParseIP(host)
 	if ip != nil {
-		log.Tracef("\n---slow path with ip address\n")
 		n.RUnlock()
 
 		// Upgrade lock to protect n.resolved
@@ -208,9 +205,6 @@ func (n *bootstrapper) createTLSConfig(host string) *tls.Config {
 	}
 	if n.options.ClientSessionCache != nil {
 		tlsConfig.ClientSessionCache = n.options.ClientSessionCache
-		log.Tracef("\n---setting client session cache\n")
-	} else {
-		log.Tracef("\n---original client session cache was nil and not handed through\n")
 	}
 
 	// Depending on the URL scheme, we choose what ALPN will be advertised by

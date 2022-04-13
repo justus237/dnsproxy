@@ -55,7 +55,7 @@ func (p *dnsOverHTTPS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 	q := m.Question[0].String()
 	log.Tracef("\n\033[34mStarting DoH exchange for: %s at: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 	exchangeStart := time.Now()
-	log.Tracef("\nmetrics:DoH exchange started for %s: %v\n", q, exchangeStart.Format(time.StampMilli))
+	//log.Tracef("\nmetrics:DoH exchange started for %s: %v\n", q, exchangeStart.Format(time.StampMilli))
 	//cannot really log handshake time due to lazy initialization...
 	/*handshakeStart := time.Now()
 	log.Tracef("\nmetrics:DoH transport configuration start: %v\n", handshakeStart.Format(time.StampMilli))*/
@@ -72,8 +72,9 @@ func (p *dnsOverHTTPS) Exchange(m *dns.Msg) (*dns.Msg, error) {
 	log.Tracef("\n\033[34mDoH answer received for: %s at: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 	logFinish(p.Address(), err)
 	exchangeFinished := time.Now()
-	log.Tracef("\nmetrics:DoH exchange finished for %s: %v\n", q, exchangeFinished.Format(time.StampMilli))
-	log.Tracef("\nmetrics:DoH exchange duration: %s\n", exchangeFinished.Sub(exchangeStart))
+	//log.Tracef("\nmetrics:DoH exchange finished for %s: %v\n", q, exchangeFinished.Format(time.StampMilli))
+	//log.Tracef("\nmetrics:DoH exchange duration: %s\n", exchangeFinished.Sub(exchangeStart))
+	log.Tracef("\nmetrics:DoH exchange duration for [%s] from %v to %v: %s\n", q, exchangeStart.Format(time.StampMilli), exchangeFinished.Format(time.StampMilli), exchangeFinished.Sub(exchangeStart))
 
 	return r, err
 }
@@ -103,7 +104,7 @@ func (p *dnsOverHTTPS) exchangeHTTPSClient(m *dns.Msg, client *http.Client) (*dn
 	req.Header.Set("Accept", "application/dns-message")
 
 	querySend := time.Now()
-	log.Tracef("\nmetrics:DoH query send for %s: %v\n", q, querySend.Format(time.StampMilli))
+	//log.Tracef("\nmetrics:DoH query send for %s: %v\n", q, querySend.Format(time.StampMilli))
 	resp, err := client.Do(req)
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
@@ -123,8 +124,9 @@ func (p *dnsOverHTTPS) exchangeHTTPSClient(m *dns.Msg, client *http.Client) (*dn
 
 	body, err := ioutil.ReadAll(resp.Body)
 	answerReceive := time.Now()
-	log.Tracef("\nmetrics:DoH answer receive for %s: %v\n", q, answerReceive.Format(time.StampMilli))
-	log.Tracef("\nmetrics:DoH query (and likely handshake) duration: %s\n", answerReceive.Sub(querySend))
+	//log.Tracef("\nmetrics:DoH answer receive for %s: %v\n", q, answerReceive.Format(time.StampMilli))
+	//log.Tracef("\nmetrics:DoH query (and likely handshake) duration: %s\n", answerReceive.Sub(querySend))
+	log.Tracef("\nmetrics:DoH query (and likely handshake) duration for [%s] from %v to %v: %s\n", q, querySend.Format(time.StampMilli), answerReceive.Format(time.StampMilli), answerReceive.Sub(querySend))
 	if err != nil {
 		return nil, errorx.Decorate(err, "couldn't read body contents for '%s'", p.boot.URL)
 	}
@@ -189,9 +191,6 @@ func (p *dnsOverHTTPS) createTransport() (*http.Transport, error) {
 	tlsConfig, dialContext, err := p.boot.get()
 	if err != nil {
 		return nil, errorx.Decorate(err, "couldn't bootstrap %s", p.boot.URL)
-	}
-	if tlsConfig.ClientSessionCache != nil {
-		log.Printf("---dnsOverHTTPS.createTransport(): clientSessionCache: %s\n", tlsConfig.ClientSessionCache)
 	}
 
 	transport := &http.Transport{

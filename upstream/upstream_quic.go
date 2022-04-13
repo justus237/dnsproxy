@@ -81,7 +81,7 @@ func (p *dnsOverQUIC) Exchange(m *dns.Msg) (*dns.Msg, error) {
 	q := m.Question[0].String()
 	log.Tracef("\n\033[34mStarting DoQ exchange for: %s at: %v\n\033[0m", q, time.Now().Format(time.StampMilli))
 	exchangeStart := time.Now()
-	log.Tracef("\nmetrics:DoQ exchange started for %s: %v\n", q, exchangeStart.Format(time.StampMilli))
+	//log.Tracef("\nmetrics:DoQ exchange started for [%s]: %v\n", q, exchangeStart.Format(time.StampMilli))
 	session, err := p.getSession(true)
 	if err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func (p *dnsOverQUIC) Exchange(m *dns.Msg) (*dns.Msg, error) {
 		return nil, err
 	}
 	querySend := time.Now()
-	log.Tracef("\nmetrics:DoQ query send for %s: %v\n", q, querySend.Format(time.StampMilli))
+	//log.Tracef("\nmetrics:DoQ query send for [%s]: %v\n", q, querySend.Format(time.StampMilli))
 	_, err = stream.Write(buf)
 	if err != nil {
 		return nil, err
@@ -144,8 +144,8 @@ func (p *dnsOverQUIC) Exchange(m *dns.Msg) (*dns.Msg, error) {
 	respBuf := *bufPtr
 	n, err := stream.Read(respBuf)
 	answerReceive := time.Now()
-	log.Tracef("\nmetrics:DoQ answer receive for %s: %v\n", q, answerReceive.Format(time.StampMilli))
-	log.Tracef("\nmetrics:DoQ query duration: %s\n", answerReceive.Sub(querySend))
+	//log.Tracef("\nmetrics:DoQ answer receive for [%s]: %v\n", q, answerReceive.Format(time.StampMilli))
+	log.Tracef("\nmetrics:DoQ query duration for [%s] from %v to %v: %s\n", q, querySend.Format(time.StampMilli), answerReceive.Format(time.StampMilli), answerReceive.Sub(querySend))
 	if err != nil && n == 0 {
 		return nil, errorx.Decorate(err, "failed to read response from %s due to %v", p.Address(), err)
 	}
@@ -157,9 +157,9 @@ func (p *dnsOverQUIC) Exchange(m *dns.Msg) (*dns.Msg, error) {
 		return nil, errorx.Decorate(err, "failed to unpack response from %s", p.Address())
 	}
 	exchangeFinished := time.Now()
-	log.Tracef("\nmetrics:DoQ exchange finished for %s: %v\n", q, exchangeFinished.Format(time.StampMilli))
-	log.Tracef("\nmetrics:DoQ exchange for %s used 0-RTT: %t\n", q, session.ConnectionState().TLS.Used0RTT)
-	log.Tracef("\nmetrics:DoQ exchange duration: %s\n", exchangeFinished.Sub(exchangeStart))
+	//log.Tracef("\nmetrics:DoQ exchange finished for [%s]: %v\n", q, exchangeFinished.Format(time.StampMilli))
+	//log.Tracef("\nmetrics:DoQ exchange for %s used 0-RTT: %t\n", q, session.ConnectionState().TLS.Used0RTT)
+	log.Tracef("\nmetrics:DoQ exchange duration for [%s] from %v to %v: %s\n", q, exchangeStart.Format(time.StampMilli), exchangeFinished.Format(time.StampMilli), exchangeFinished.Sub(exchangeStart))
 
 	return reply, nil
 }
@@ -249,18 +249,6 @@ func (p *dnsOverQUIC) openSession() (quic.Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	if tlsConfig.ClientSessionCache != nil {
-		log.Tracef("\n---tls config has client session cache, handed through via bootstrapper\n")
-	} else {
-		log.Tracef("\n---tls config does not have client session cache, was not handed through via bootstrapper, setting from outer options\n")
-	}
-
-	if p.tokenStore != nil {
-		log.Tracef("\n---token store of dnsOverQUIC is not nil\n")
-	}
-
-	log.Printf("---openSession: tokenStore: %s\n", p.tokenStore)
-	log.Printf("---openSession: clientSessionCache: %s\n", tlsConfig.ClientSessionCache)
 
 	// we're using bootstrapped address instead of what's passed to the function
 	// it does not create an actual connection, but it helps us determine
@@ -295,7 +283,7 @@ func (p *dnsOverQUIC) openSession() (quic.Session, error) {
 		MaxIdleTimeout: time.Millisecond * 3000000,
 	}
 	handshakeStart := time.Now()
-	log.Tracef("\nmetrics:DoQ QUIC handshake start: %v\n", handshakeStart.Format(time.StampMilli))
+	//log.Tracef("\nmetrics:DoQ QUIC handshake start: %v\n", handshakeStart.Format(time.StampMilli))
 
 	session, versionInfo, err := quic.DialAddrEarlyContext(context.Background(), addr, tlsConfig, quicConfig, 40000)
 	if err != nil {
@@ -304,7 +292,7 @@ func (p *dnsOverQUIC) openSession() (quic.Session, error) {
 
 	handshakeDone := time.Now()
 
-	log.Tracef("\nmetrics:DoQ QUIC handshake done: %v\n", handshakeDone.Format(time.StampMilli))
+	//log.Tracef("\nmetrics:DoQ QUIC handshake done: %v\n", handshakeDone.Format(time.StampMilli))
 	log.Tracef("\nmetrics:DoQ QUIC handshake duration: %s\n", handshakeDone.Sub(handshakeStart))
 
 	p.version = versionInfo.Version

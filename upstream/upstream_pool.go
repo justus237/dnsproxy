@@ -71,9 +71,7 @@ func (n *TLSPool) Create() (net.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	if tlsConfig.ClientSessionCache != nil {
-		log.Printf("---TLSPool.Create(): clientSessionCache: %s\n", tlsConfig.ClientSessionCache)
-	}
+	
 
 	// we'll need a new connection, dial now
 	conn, err := tlsDial(dialContext, "tcp", tlsConfig)
@@ -112,10 +110,10 @@ func tlsDial(dialContext dialHandler, network string, config *tls.Config) (*tls.
 		return nil, err
 	}
 	handshakeStart := time.Now()
-	log.Tracef("\nmetrics:DoT TLS handshake start: %v\n", handshakeStart.Format(time.StampMilli))
+	//log.Tracef("\nmetrics:DoT TLS handshake start: %v\n", handshakeStart.Format(time.StampMilli))
 	err = conn.Handshake()
 	handshakeDone := time.Now()
-	log.Tracef("\nmetrics:DoT TLS handshake finished: %v\n", handshakeDone.Format(time.StampMilli))
+	//log.Tracef("\nmetrics:DoT TLS handshake finished: %v\n", handshakeDone.Format(time.StampMilli))
 	log.Tracef("\nmetrics:DoT TLS handshake duration: %s\n", handshakeDone.Sub(handshakeStart))
 	if err != nil {
 		conn.Close()
