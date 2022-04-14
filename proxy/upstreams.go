@@ -28,11 +28,6 @@ func ParseUpstreamsConfig(upstreamConfig []string, options *upstream.Options) (*
 	if options == nil {
 		options = &upstream.Options{}
 	}
-	if options.ClientSessionCache != nil {
-		log.Tracef("\n---session cache handed to parser correctly\n")
-	} else {
-		log.Tracef("\n---session cache not handed to parser\n")
-	}
 
 	var upstreams []upstream.Upstream
 	domainReservedUpstreams := map[string][]upstream.Upstream{}
@@ -65,7 +60,7 @@ func ParseUpstreamsConfig(upstreamConfig []string, options *upstream.Options) (*
 						Bootstrap:          options.Bootstrap,
 						Timeout:            options.Timeout,
 						InsecureSkipVerify: options.InsecureSkipVerify,
-						TokenStore: 	    options.TokenStore,
+						TokenStore:         options.TokenStore,
 						ClientSessionCache: options.ClientSessionCache,
 					})
 				if err != nil {

@@ -2,15 +2,16 @@
 package upstream
 
 import (
+	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/lucas-clemente/quic-go"
 	"net"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
-	"crypto/tls"
+
+	"github.com/lucas-clemente/quic-go"
 
 	"github.com/AdguardTeam/golibs/log"
 	"github.com/ameshkov/dnscrypt/v2"
@@ -51,7 +52,7 @@ type Options struct {
 	VerifyDNSCryptCertificate func(cert *dnscrypt.Cert) error
 
 	TokenStore quic.TokenStore
-	
+
 	// optional tls.ClientSessionCache to use (needed for 0RTTs)
 	ClientSessionCache tls.ClientSessionCache
 }
@@ -80,7 +81,6 @@ func parseHostAndPort(addr string) (string, string, error) {
 // * sdns://... -- DNS stamp (see https://dnscrypt.info/stamps-specifications)
 // options -- Upstream customization options, nil means default options.
 func AddressToUpstream(address string, options *Options) (Upstream, error) {
-	log.Tracef("\n---creating new bootstrapper with command line supplied upstream\n")
 	if options == nil {
 		options = &Options{}
 	}
@@ -90,7 +90,6 @@ func AddressToUpstream(address string, options *Options) (Upstream, error) {
 		if err != nil {
 			return nil, errorx.Decorate(err, "failed to parse %s", address)
 		}
-		log.Tracef("\n---going to urlToUpstream()\n")
 		return urlToUpstream(upstreamURL, options)
 	}
 
@@ -112,14 +111,12 @@ func urlToBoot(resolverURL *url.URL, opts *Options) (*bootstrapper, error) {
 	if len(opts.ServerIPAddrs) == 0 {
 		return newBootstrapper(resolverURL, opts)
 	}
-	log.Tracef("\n---creating new bootstrapper with command line supplied upstream\n")
 	return newBootstrapperResolved(resolverURL, opts)
 }
 
 // urlToUpstream converts a URL to an Upstream
 // options -- Upstream customization options
 func urlToUpstream(upstreamURL *url.URL, opts *Options) (Upstream, error) {
-	log.Tracef("\n---creating new bootstrapper with command line supplied upstream\n")
 	switch upstreamURL.Scheme {
 	case "sdns":
 		return stampToUpstream(upstreamURL, opts)
