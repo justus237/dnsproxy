@@ -293,7 +293,7 @@ func (p *dnsOverQUIC) openSession() (quic.Session, error) {
 	handshakeDone := time.Now()
 
 	//log.Tracef("\nmetrics:DoQ QUIC handshake done: %v\n", handshakeDone.Format(time.StampMilli))
-	log.Tracef("\nmetrics:DoQ QUIC handshake duration: %s\n", handshakeDone.Sub(handshakeStart))
+	log.Tracef("\nmetrics:DoQ QUIC handshake duration from %v to %v: %s\n", handshakeStart.Format(time.StampMilli), handshakeDone.Format(time.StampMilli), handshakeDone.Sub(handshakeStart))
 
 	p.version = versionInfo.Version
 

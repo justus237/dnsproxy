@@ -128,14 +128,14 @@ func (c *Client) Dial(address string) (conn *Conn, err error) {
 	case "tcp":
 		if useTLS {
 			//log.Tracef("\nmetrics:DoT TCP+TLS handshakes finished: %v\n", handshakeDone.Format(time.StampMilli))
-			log.Tracef("\nmetrics:DoT TCP+TLS handshake duration: %s\n", handshakeDone.Sub(handshakeStart))
+			log.Tracef("\nmetrics:DoT TCP+TLS handshake duration from %v to %v: %s\n", handshakeStart.Format(time.StampMilli), handshakeDone.Format(time.StampMilli), handshakeDone.Sub(handshakeStart))
 		} else {
 			//log.Tracef("\nmetrics:DoTCP TCP handshake finished: %v\n", handshakeDone.Format(time.StampMilli))
-			log.Tracef("\nmetrics:DoTCP TCP handshake duration: %s\n", handshakeDone.Sub(handshakeStart))
+			log.Tracef("\nmetrics:DoTCP TCP handshake duration from %v to %v: %s\n", handshakeStart.Format(time.StampMilli), handshakeDone.Format(time.StampMilli), handshakeDone.Sub(handshakeStart))
 		}
 	case "udp":
 		//log.Tracef("\nmetrics:DoUDP UDP socket setup finished: %v\n", handshakeDone.Format(time.StampMilli))
-		log.Tracef("\nmetrics:DoUDP UDP setup duration: %s\n", handshakeDone.Sub(handshakeStart))
+		log.Tracef("\nmetrics:DoUDP UDP setup duration from%v to %v: %s\n", handshakeStart.Format(time.StampMilli), handshakeDone.Format(time.StampMilli), handshakeDone.Sub(handshakeStart))
 	}
 	conn.UDPSize = c.UDPSize
 	return conn, nil
