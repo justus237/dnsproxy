@@ -5,6 +5,7 @@
 package qtls
 
 import (
+	"bufio"
 	"bytes"
 	"crypto"
 	"crypto/hmac"
@@ -13,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"hash"
+	"os"
 	"sync/atomic"
 	"time"
 
@@ -708,6 +710,15 @@ func (c *Conn) handleNewSessionTicket(msg *newSessionTicketMsgTLS13) error {
 		b.AddBytes(msg.nonce)
 	})
 
+	fmt.Printf("**session ticket inside qtls: %s\n", fmt.Sprintf("%x", msg.label))
+	file, err := os.OpenFile("/tmp/chrome_session_cache.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Printf("failed creating file: %s", err)
+	}
+	datawriter := bufio.NewWriter(file)
+	_, _ = datawriter.WriteString(fmt.Sprintf("session_ticket=%x", msg.label) + "\n")
+	datawriter.Flush()
+	file.Close()
 	// Save the resumption_master_secret and nonce instead of deriving the PSK
 	// to do the least amount of work on NewSessionTicket messages before we
 	// know if the ticket will be used. Forward secrecy of resumed connections
