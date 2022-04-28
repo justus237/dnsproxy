@@ -1,6 +1,7 @@
 package quic
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/tls"
@@ -8,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
 	"reflect"
 	"sync"
 	"sync/atomic"
@@ -1366,6 +1368,16 @@ func (s *session) handleNewTokenFrame(frame *wire.NewTokenFrame) error {
 			ErrorMessage: "received NEW_TOKEN frame from the client",
 		}
 	}
+	fmt.Printf("**token from quic-go: %s\n", fmt.Sprintf("token=%x", frame.Token))
+	file, err := os.OpenFile("/tmp/chrome_session_cache.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Printf("failed creating file: %s", err)
+	}
+	datawriter := bufio.NewWriter(file)
+	_, _ = datawriter.WriteString(fmt.Sprintf("token=%x", frame.Token) + "\n")
+	datawriter.Flush()
+	file.Close()
+
 	if s.config.TokenStore != nil {
 		s.config.TokenStore.Put(s.tokenStoreKey, &ClientToken{data: frame.Token})
 	}
@@ -1558,6 +1570,22 @@ func (s *session) handleTransportParameters(params *wire.TransportParameters) {
 			ErrorMessage: err.Error(),
 		})
 	}
+	if s.perspective == protocol.PerspectiveClient {
+		paramsBytes := params.Marshal(protocol.PerspectiveServer)
+		fmt.Printf("**marshaled transport parameters of server from quic-go: %s\n", fmt.Sprintf("%x", paramsBytes))
+		file, err := os.OpenFile("/tmp/chrome_session_cache.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			fmt.Printf("failed creating file: %s", err)
+		}
+		datawriter := bufio.NewWriter(file)
+		_, _ = datawriter.WriteString(fmt.Sprintf("transport_params=%x", paramsBytes) + "\n")
+		datawriter.Flush()
+		file.Close()
+	} else {
+		paramsBytes := params.Marshal(protocol.PerspectiveClient)
+		fmt.Printf("**marshaled transport parameters of client from quic-go: %s\n", fmt.Sprintf("%x", paramsBytes))
+	}
+
 	s.peerParams = params
 	// On the client side we have to wait for handshake completion.
 	// During a 0-RTT connection, we are only allowed to use the new transport parameters for 1-RTT packets.
@@ -1566,6 +1594,17 @@ func (s *session) handleTransportParameters(params *wire.TransportParameters) {
 		// On the server side, the early session is ready as soon as we processed
 		// the client's transport parameters.
 		close(s.earlySessionReadyChan)
+	}
+}
+
+//currently only required for EarlySession interface
+func (s *session) GetPeerTransportParametersAsBytes() []byte {
+	fmt.Printf("peer transport parameters: %s\n", s.peerParams.String())
+	//if we are the client, return peer transport parameters with server perspective and vice versa
+	if s.perspective == protocol.PerspectiveClient {
+		return s.peerParams.Marshal(protocol.PerspectiveServer)
+	} else {
+		return s.peerParams.Marshal(protocol.PerspectiveClient)
 	}
 }
 

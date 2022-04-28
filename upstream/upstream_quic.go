@@ -68,6 +68,9 @@ type dnsOverQUIC struct {
 func (p *dnsOverQUIC) Reset() {
 	p.RLock()
 	session := p.session
+	//paramsBytes := session.GetPeerTransportParametersAsBytes()
+	//fmt.Printf("**marshaled transport parameters from dnsproxy: %s\n", fmt.Sprintf("%x", paramsBytes))
+
 	_ = session.CloseWithError(0, "")
 	p.RUnlock()
 }
@@ -291,6 +294,8 @@ func (p *dnsOverQUIC) openSession() (quic.Session, error) {
 	}
 
 	handshakeDone := time.Now()
+	//paramsBytes := session.GetPeerTransportParametersAsBytes()
+	//fmt.Printf("marshaled transport parameters from dnsproxy: %s\n", fmt.Sprintf("%x", paramsBytes))
 
 	//log.Tracef("\nmetrics:DoQ QUIC handshake done: %v\n", handshakeDone.Format(time.StampMilli))
 	log.Tracef("\nmetrics:DoQ QUIC handshake duration from %v to %v: %s\n", handshakeStart.Format(time.StampMilli), handshakeDone.Format(time.StampMilli), handshakeDone.Sub(handshakeStart))

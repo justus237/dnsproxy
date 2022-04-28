@@ -211,6 +211,9 @@ type Session interface {
 	// ReceiveMessage gets a message received in a datagram.
 	// See https://datatracker.ietf.org/doc/draft-pauly-quic-datagram/.
 	ReceiveMessage() ([]byte, error)
+
+	//modification for sending session resumption state to chromium
+	GetPeerTransportParametersAsBytes() []byte
 }
 
 // An EarlySession is a session that is handshaking.

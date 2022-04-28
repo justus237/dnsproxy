@@ -316,12 +316,13 @@ func (p *TransportParameters) Marshal(pers protocol.Perspective) []byte {
 	b := &bytes.Buffer{}
 
 	// add a greased value
-	quicvarint.Write(b, uint64(27+31*rand.Intn(100)))
+	//like in chromium, remove grease, NOT RFC compliant I guess, but it seems pointless in a controlled environment
+	/*quicvarint.Write(b, uint64(27+31*rand.Intn(100)))
 	length := rand.Intn(16)
 	randomData := make([]byte, length)
 	rand.Read(randomData)
 	quicvarint.Write(b, uint64(length))
-	b.Write(randomData)
+	b.Write(randomData)*/
 
 	// initial_max_stream_data_bidi_local
 	p.marshalVarintParam(b, initialMaxStreamDataBidiLocalParameterID, uint64(p.InitialMaxStreamDataBidiLocal))
